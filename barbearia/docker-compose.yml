@@ -1,0 +1,55 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: barbearia-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASS}
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - app-net
+
+  server:
+    build: ./server
+    container_name: barbearia-server
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    environment:
+      PORT: 5000
+      MONGO_URI: mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASS}@mongo:27017/barbearia?authSource=admin
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+      ADMIN_USER: ${ADMIN_USER}
+      ADMIN_PASS: ${ADMIN_PASS}
+      CLIENT_ORIGIN: ${CLIENT_ORIGIN}
+    ports:
+      - "5000:5000"
+    networks:
+      - app-net
+
+  client:
+    build:
+      context: ./client
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+        VITE_NOME_BARBEARIA: ${VITE_NOME_BARBEARIA}
+    container_name: barbearia-client
+    restart: unless-stopped
+    depends_on:
+      - server
+    ports:
+      - "8080:80"
+    networks:
+      - app-net
+
+volumes:
+  mongo_data:
+
+networks:
+  app-net:
+    driver: bridge

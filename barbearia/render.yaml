@@ -1,0 +1,21 @@
+# Configuração de deploy no Render (serviço único: backend serve o front).
+# Basta conectar o repositório no Render que ele lê este arquivo.
+services:
+  - type: web
+    name: barbearia
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true      # o Render gera uma chave segura automaticamente
+      - key: JWT_EXPIRES_IN
+        value: 1d
+      - key: ADMIN_USER
+        value: barbeiro
+      - key: ADMIN_PASS
+        value: barbearia123
+      - key: MONGO_URI
+        sync: false              # você cola a string do MongoDB Atlas no painel
